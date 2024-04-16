@@ -39,11 +39,18 @@ namespace Minha_API.Controllers
         public ActionResult<bool> Put([FromRoute] int id, TodoItemDto todoItemDto)
         {
             //busca os dados no bd pelo ID
-            TodoItemModel todoItemModel = new TodoItemModel();
-            todoItemModel.Id = id;
+            //TodoItemModel todoItemModel = new TodoItemModel();
+            var todoItemModel = todoContext.TodoItemModels.Find(id);
+
+            if (todoItemModel == null) {
+                return NotFound("Id não encontrado");
+            }
+            //todoItemModel.Id = id;
             todoItemModel.Name = todoItemDto.Name;
             todoItemModel.Ativo = todoItemDto.Ativo;
-            // atualiza no bd
+
+            todoContext.TodoItemModels.Update(todoItemModel);
+            todoContext.SaveChanges();
 
             return Ok(true);
         }
@@ -52,7 +59,17 @@ namespace Minha_API.Controllers
         [HttpDelete("{id}")]
         public ActionResult Delete([FromRoute] int id)
         {
-            //verifica se existe a informação no bd
+            //var existe = todoContext.TodoItemModels.Where(w => w.Id == id).Any();
+            var modelsItem = todoContext.TodoItemModels.Find(id);
+
+            if (modelsItem is not null) {
+                todoContext.TodoItemModels.Remove(modelsItem);
+                todoContext.SaveChanges();
+            } 
+            else {
+                return NotFound("Id não encontrado");
+            }
+
             return Ok();
         }
 
@@ -61,6 +78,8 @@ namespace Minha_API.Controllers
         public ActionResult <IEnumerable<TodoItemDto>> Get()
         {
             //busca dados no bd e devolve um lista
+            //IEnumerable<TodoItemDto> modelsItem = (IEnumerable<TodoItemDto>)todoContext.TodoItemModels.GetType();
+
             return Ok();
         }
 

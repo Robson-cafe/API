@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -18,5 +19,12 @@ namespace Minha_API.Models
         public bool Ativo { get; set; }
         [Required]
         public DateTime Cadastro { get; set; }
+        //public List<TodoItemDetailModel> Dados { get; set; }
     }
+
+    //[Table("TodoItemDetail")]
+    //public class TodoItemDetailModel
+    //{
+
+    //}
 }
