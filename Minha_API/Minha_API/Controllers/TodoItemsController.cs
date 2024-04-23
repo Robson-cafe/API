@@ -5,6 +5,7 @@ using Minha_API.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Minha_API.Controllers
@@ -21,17 +22,24 @@ namespace Minha_API.Controllers
 
         // Verbo Post (CREATE - INSERT)
         [HttpPost]
-        public ActionResult<int> Post(TodoItemDto todoItemDto)
+        public ActionResult<TodoItemResponseDto> Post(TodoItemDto todoItemDto)
         {
             TodoItemModel todoItemModel = new TodoItemModel();
             todoItemModel.Name = todoItemDto.Name;
             todoItemModel.Ativo = todoItemDto.Ativo;
             todoItemModel.Cadastro = DateTime.Now;
 
+            var indiceNome = todoItemDto.Name.Split(' ');
+            todoItemModel.Apelido = $"ap-{indiceNome[0]}";
+
             todoContext.TodoItemModels.Add(todoItemModel);
             todoContext.SaveChanges();
 
-            return Ok(todoItemModel.Id);
+            return Ok(new TodoItemResponseDto {
+                Id = todoItemModel.Id,
+                Nome = todoItemDto.Name,
+                Apelido = todoItemDto.Apelido
+            });
         }
 
         // Verbo Put (UPDATE - Atualiza)
@@ -75,20 +83,44 @@ namespace Minha_API.Controllers
 
         // Verbo GET (SELECT)
         [HttpGet]
-        public ActionResult <IEnumerable<TodoItemDto>> Get()
+        public ActionResult<IEnumerable<TodoItemResponseDto>> Get()
         {
             //busca dados no bd e devolve um lista
-            //IEnumerable<TodoItemDto> modelsItem = (IEnumerable<TodoItemDto>)todoContext.TodoItemModels.GetType();
+            var modelTodoItem = todoContext.TodoItemModels.ToList();
+            var listaTodoItemDto = new List<TodoItemResponseDto>();
 
-            return Ok();
+            foreach(var todoItem in modelTodoItem) {
+                listaTodoItemDto.Add(new TodoItemResponseDto() {
+                    Id = todoItem.Id,
+                    Apelido = todoItem.Apelido,
+                    Nome = todoItem.Name
+                });
+            }
+
+            return Ok(listaTodoItemDto);
         }
 
         // Verbo GET (SELECT) - por ID
         [HttpGet("{id}")]
-        public ActionResult<TodoItemDto> Get([FromRoute] int id)
+        public ActionResult<TodoItemResponseDto> Get([FromRoute] int id)
         {
-            //busca dados no bd pelo ID e devolve 1 objeto
-            return Ok();
+            try {
+                var todoItemModel = todoContext.TodoItemModels.Find(id);
+
+                var todoItemResponseDto = new TodoItemResponseDto
+                {
+                    Id = todoItemModel.Id,
+                    Apelido = todoItemModel.Apelido,
+                    Nome = todoItemModel.Name
+                };
+
+                return Ok(todoItemResponseDto);
+            } 
+            catch {
+                return StatusCode(HttpStatusCode.InternalServerError.GetHashCode(),
+                    new {Messagem = "Id não existe mané!"});
+            }
+            
         }
     }
 }
